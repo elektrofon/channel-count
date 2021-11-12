@@ -103,12 +103,30 @@ static int get_output_channel_count() {
 	return 0;
 }
 
+static void remove_char(char *str, char remove) {
+	char *src, *dst;
+
+	for (src = dst = str; *src != '\0'; src++) {
+		*dst = *src;
+		if (*dst != remove) dst++;
+	}
+
+	*dst = '\0';
+}
+
+static void prepend(char *str, const char *prepend) {
+	size_t len = strlen(prepend);
+	memmove(str + len, str, strlen(str) + 1);
+	memcpy(str, prepend, len);
+}
+
 static void help(void) {
 	int k;
 	printf(
 		"Usage: channelcnt [OPTION]...\n"
 		"-h,--help  help\n"
 		"-D,--device    device\n"
+		"-U,--usb-name  usb device name\n"
 		"\n"
 	);
 }
@@ -116,6 +134,7 @@ static void help(void) {
 int main(int argc, char **argv) {
 	struct option long_option[] = {
 		{"device", 1, NULL, 'D'},
+		{"usb-name", 1, NULL, 'U'},
 		{NULL, 0, NULL, 0},
 	};
 
@@ -124,7 +143,7 @@ int main(int argc, char **argv) {
 
 	while (1) {
 		int c;
-		if ((c = getopt_long(argc, argv, "hD:", long_option, NULL)) < 0) {
+		if ((c = getopt_long(argc, argv, "hD:U:", long_option, NULL)) < 0) {
 			break;
 		}
 
@@ -134,6 +153,22 @@ int main(int argc, char **argv) {
 				break;
 			case 'D':
 				device = strdup(optarg);
+				break;
+			case 'U':
+				{
+					char *usb_name = strdup(optarg);
+					remove_char(usb_name, '-');
+					remove_char(usb_name, ' ');
+					char *s = malloc(100);
+					strcpy(s, usb_name);
+					prepend(s, "hw:");
+
+					device = strdup(s);
+
+					free(usb_name);
+					free(s);
+				}
+
 				break;
 		}
 	}
