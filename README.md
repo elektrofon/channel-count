@@ -2,6 +2,12 @@
 
 Get maximum number of input and output channels of an ALSA device.
 
+## Build and install
+
+```bash
+$ make && make install
+```
+
 ## Usage:
 
 Basic:
